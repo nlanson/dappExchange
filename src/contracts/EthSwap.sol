@@ -28,4 +28,8 @@ contract EthSwap {
         //Emit the TokenPurchased Event
         emit TokenPurchased(msg.sender, address(token), tokenAmount, rate);
     }
+
+    function sellTokens() public {
+        
+    }
 }
