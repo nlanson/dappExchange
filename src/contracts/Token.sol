@@ -33,6 +33,7 @@ contract Token {
         return true;
     }
 
+    //Allows the user to approve an address of smart contract to send tokens on their behalf.
     function approve(address _spender, uint256 _value) public returns (bool success) {
         allowance[msg.sender][_spender] = _value;
         emit Approval(msg.sender, _spender, _value);
