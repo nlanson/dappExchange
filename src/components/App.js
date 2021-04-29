@@ -1,5 +1,9 @@
 import React, { Component } from 'react';
+import Navbar from './Navbar';
 import './App.css';
+
+import Token from '../abis/Token.json';
+import EthSwap from '../abis/EthSwap.json';
 import Web3 from 'web3';
 
 class App extends Component {
@@ -24,32 +28,56 @@ class App extends Component {
 
   async loadBlockChainData() {
     const web3 = window.web3;
+    
     //Request account from MetaMask.
     const accounts = await web3.eth.requestAccounts();
-    this.setState({account: accounts[0]});
-    console.log(this.state.account);
+    this.setState({ account: accounts[0] });
+
+    //Get account balance using web3.
+    let ethBalance = await web3.eth.getBalance(this.state.account);
+    this.setState({ ethBalance: ethBalance });
+
+    //Load Token
+    const networkID = await web3.eth.net.getId(); //Get the current network ID that metamask is connected to.
+    const tokenData = Token.networks[networkID]; //The potential address of the Smart Contract on the Network. 5777 is the Ganache Network ID
+    if ( tokenData ) {
+      //If the tokenData exists on the given network, load it and save it into state.
+      const token = new web3.eth.Contract(Token.abi, tokenData.address);
+      this.setState({ token: token });
+
+      //Get the token balance of the account
+      let tokenBalance = await token.methods.balanceOf(this.state.account).call(); //.call() is a web3 method used when getting information off the blockchain without creating a new transaction. Essentially read-only.
+      this.setState({ tokenBalance: tokenBalance.toString() });
+    } else {
+      window.alert('Token contract not deployed to connected network.')
+    }
+
+    //Load EthSwap
+    const ethSwapData = EthSwap.networks[networkID];
+    if ( ethSwapData ) {
+      //If the EthSwap Contract Data exists on the given network, load it and save it.
+      const ethSwap = new web3.eth.Contract(EthSwap.abi, ethSwapData.address);
+      this.setState({ ethSwap: ethSwap });
+    } else {
+      window.alert('EthSwap contract not deployed to connected network.')
+    }
   }
 
   constructor(props) {
     super(props);
     this.state = {
-      account: ''
+      account: '',
+      ethBalance: '0',
+      token: {},
+      tokenBalance: '0',
+      ethSwap: {}
     };
   }
   
   render() {
     return (
       <div>
-        <nav className="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-          <a
-            className="navbar-brand col-sm-3 col-md-2 mr-0"
-            href="http://www.dappuniversity.com/bootcamp"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Dapp University
-          </a>
-        </nav>
+        <Navbar account={this.state.account}/>
         <div className="container-fluid mt-5">
           <div className="row">
             <main role="main" className="col-lg-12 d-flex text-center">

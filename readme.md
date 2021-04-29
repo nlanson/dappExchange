@@ -3,7 +3,7 @@ This is a dApp Exchange Application created following [this tutorial](https://ww
 
 This project is a combination of 2 Smart Contracts that create a new ERC20 Token and create an exchange to distribute the newly created token.
 
-Upto date with tutorial @timestamp 2:04:58.
+Upto date with tutorial @timestamp 2:30:17.
 
 ## Start Developing
 1. Install required dependencies as detailed below and run `npm i`.
