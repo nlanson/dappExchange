@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Navbar from './Navbar';
+import Main from './Main';
 import './App.css';
 
 import Token from '../abis/Token.json';
@@ -8,13 +9,25 @@ import Web3 from 'web3';
 
 class App extends Component {
   
-  //Special function that gets called before a component gets rendered.
+  constructor(props) {
+    super(props);
+    this.state = {
+      account: '',
+      ethBalance: '0',
+      token: {},
+      tokenBalance: '0',
+      ethSwap: {},
+      loading: true
+    };
+  }
+  
+  //Special function that gets called before a component gets rendered. Basically ngOnInit
   async componentWillMount() {
     await this.loadWeb3();
     await this.loadBlockChainData();
   }
   
-  //This function connects the app to the blockchain via MetaMask.
+  //This function connects the app to the blockchain via MetaMask. (IMPORTANT)
   async loadWeb3() {
     if (window.ethereum) {
       window.web3 = new Web3(window.ethereum);
@@ -26,6 +39,7 @@ class App extends Component {
     }
   }
 
+  //Loads the Ether data of the user and Smart contracts of Swap and Token (IMPORTANT)
   async loadBlockChainData() {
     const web3 = window.web3;
     
@@ -61,28 +75,68 @@ class App extends Component {
     } else {
       window.alert('EthSwap contract not deployed to connected network.')
     }
-  }
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      account: '',
-      ethBalance: '0',
-      token: {},
-      tokenBalance: '0',
-      ethSwap: {}
-    };
-  }
+    this.setState({ loading: false });
+  
+  } //End load block chain
+
+  //This function takes in an Ether Amount and sends it to the Token Smart contract to buy. (IMPORTANT)
+  buyTokens = (etherAmount) => {
+    //Set loading to true
+    this.setState({ loading: true });
+
+    //Buy the tokens using EthSwap contract buyTokens() method. (No params because the method uses the "value" of .send() below.)
+    this.state.ethSwap.methods.buyTokens()
+    .send({ value: etherAmount, from: this.state.account }) //Uses .send() as it is creating a new transaction. Value is the ether amount to transfer,
+    .on('transactionHash', (hash) => { // When the transaction is complete, set loading to false.
+        this.setState({ loading: false })
+    });
+
+  } //End buyTokens
+
+
+
+  //This function takes in the token amount to sell and swaps it for ether (IMPORTANT)
+  sellTokens = (tokenAmount) => {
+    this.setState({ loading: true });
+
+    //Approve funds from user and then sell.
+    this.state.token.methods.approve(this.state.ethSwap.address, tokenAmount)
+    .send({ from: this.state.account })
+    .on('transactionHash', (hash) => {
+      // Sell tokens once funds approved
+      this.state.ethSwap.methods.sellTokens(tokenAmount)
+      .send({ from: this.state.account })
+      .on('transactionHash', (hash) => {
+        this.setState({ loading: false });
+      });
+    });
+
+  } //End sellTokens
+
   
   render() {
+    let content;
+    if (this.state.loading) {
+      content = <p id='loader' className='text-center'>Loading...</p>
+    } else {
+      content = <Main 
+                  ethBalance={this.state.ethBalance} 
+                  tokenBalance={this.state.tokenBalance}
+                  buyTokens={this.buyTokens}
+                  sellTokens={this.sellTokens}
+      />
+    }
+    
     return (
       <div>
         <Navbar account={this.state.account}/>
         <div className="container-fluid mt-5">
           <div className="row">
-            <main role="main" className="col-lg-12 d-flex text-center">
+            <main role="main" className="col-lg-12 ml-auto mr-auto" style={{ maxWidth: "600px" }}>
               <div className="content mr-auto ml-auto">
-                <h1>Hello World!</h1>
+
+                { content }
 
               </div>
             </main>

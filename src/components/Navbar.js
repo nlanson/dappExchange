@@ -12,7 +12,7 @@ class Navbar extends Component {
             target="_blank"
             rel="noopener noreferrer"
             >
-                EthSwap
+                GoldSwap
             </a>
             <ul>
                 <li className='nav-item text-nowrap d-none d-sm-none d-sm-block'>

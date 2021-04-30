@@ -40,7 +40,7 @@ contract EthSwap {
     }
 
     
-    function sellTokens(uint _amount) public {
+    function sellTokens(uint _amount) public payable{
         //Store sender address as a payable address.
         address payable sender = payable(msg.sender);
         
